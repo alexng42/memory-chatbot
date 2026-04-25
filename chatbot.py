@@ -19,6 +19,18 @@ def trim_history():
         # restore the system prompt
         conversation_history[0] = system_prompt
 
+def summarize_user():
+    response = ollama.chat(
+        model="llama3:latest",
+        messages=conversation_history + [
+            {
+                "role": "user",
+                "content": "Based on our conversation, summarize what you know about me."
+            }
+        ]
+    )
+    return response["message"]["content"]
+
 def chat(user_input):
     conversation_history.append({"role": "user", "content": user_input})
     
@@ -35,9 +47,12 @@ def chat(user_input):
     return assistant_message
 
 if __name__ == "__main__":
-    print("Llama3 ready. Type 'quit' to exit.")
+    print("Llama3 ready. Type 'summary' to see a summary about you. Type 'quit' to exit.")
     while True:
         user_input = input("You: ")
         if user_input.lower() == "quit":
             break
+        if user_input.lower() == "summary":
+            print(f"Bot: {summarize_user()}")
+            continue
         print(f"Bot: {chat(user_input)}")

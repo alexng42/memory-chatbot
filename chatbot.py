@@ -9,27 +9,29 @@ os.makedirs(HISTORY_DIR, exist_ok=True)
 
 MAX_MESSAGES = 20
 
-conversation_history = [
-    {
-        "role": "system",
-        "content": f"You are a helpful assistant. Be concise and friendly. Today's date is {datetime.now().strftime('%Y-%m-%d')}."
-    }
-]
+state = {
+    "history": [
+        {
+            "role": "system",
+            "content": f"You are a helpful assistant. Be concise and friendly. Today's date is {datetime.now().strftime('%Y-%m-%d')}."
+        }
+    ]
+}
 
 def trim_history():
     # if the history exceeds max number of messages, remove the oldest ones
-    if len(conversation_history) > MAX_MESSAGES:
+    if len(state["history"]) > MAX_MESSAGES:
          # save the system prompt
-        system_prompt = conversation_history[0]
+        system_prompt = state["history"][0]
         # trim (save the last MAX_MESSAGES - 1 messages)
-        conversation_history[1:] = conversation_history[-(MAX_MESSAGES - 1):]
+        state["history"][1:] = state["history"][-(MAX_MESSAGES - 1):]
         # restore the system prompt
-        conversation_history[0] = system_prompt
+        state["history"][0] = system_prompt
 
 def summarize_user():
     response = ollama.chat(
         model="llama3:latest",
-        messages=conversation_history + [
+        messages=state["history"] + [
             {
                 "role": "user",
                 "content": "Based on our conversation, summarize what you know about me."
@@ -40,9 +42,16 @@ def summarize_user():
 
 # saving conversations
 def save_conversation():
-    filename = datetime.now().strftime("%Y-%m-%d") + ".json"
-    with open(f"history/{filename}", "w") as f:
-        json.dump(conversation_history, f)
+    filepath = os.path.join(HISTORY_DIR, datetime.now().strftime("%Y-%m-%d") + ".json")
+    
+    if os.path.exists(filepath):
+        with open(filepath, "r") as f:
+            existing = json.load(f)
+    else:
+        existing = []
+    
+    with open(filepath, "w") as f:
+        json.dump(existing + state["history"], f)
 
 # recall previous conversations
 def search_history(date_string):
@@ -57,12 +66,15 @@ def search_history(date_string):
     with open(filepath, "r") as f:
         old_history = json.load(f)
     
+    # Load old history into the active conversation
+    state["history"] = old_history
+    
     response = ollama.chat(
         model="llama3:latest",
-        messages=old_history + [
+        messages=state["history"] + [
             {
-                "role": "user", 
-                "content": f"Based only on the conversation above, summarize exactly what was discussed. Do not make anything up."
+                "role": "user",
+                "content": "Based only on the conversation above, summarize exactly what was discussed. Do not make anything up."
             }
         ]
     )
@@ -77,17 +89,17 @@ def is_valid_date(date_string):
         return False
 
 def chat(user_input):
-    conversation_history.append({"role": "user", "content": user_input})
+    state["history"].append({"role": "user", "content": user_input})
     
     trim_history()
     
     response = ollama.chat(
         model="llama3:latest",
-        messages=conversation_history
+        messages=state["history"]
     )
     
     assistant_message = response["message"]["content"]
-    conversation_history.append({"role": "assistant", "content": assistant_message})
+    state["history"].append({"role": "assistant", "content": assistant_message})
     
     save_conversation()  # save after every message
     

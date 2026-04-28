@@ -121,9 +121,17 @@ def chat(user_input):
     return assistant_message
 
 if __name__ == "__main__":
-    print("Llama3 ready. Type 'summary' to see a summary about you. Type 'quit' to exit.")
+    print("Chatbot ready. Type '!help' to see a list of commands. Type 'quit' to exit.")
     while True:
         user_input = input("You: ")
+        if user_input.lower() == "!help":
+            print("Commands:")
+            print("  summary              - Get a summary of what the bot knows about you")
+            print("  recall YYYY-MM-DD    - Recall conversations from a specific date")
+            print("  search <query>       - Search across all past conversations")
+            print("  !help                - Show this help message")
+            print("  quit                 - Exit the chatbot")
+            continue
         if user_input.lower() == "quit":
             save_conversation()
             break

@@ -58,8 +58,10 @@ Persistent storage — conversations are saved to JSON files in a history/ folde
 RAG (Retrieval Augmented Generation) — each message is converted to a vector embedding using all-MiniLM-L6-v2 and stored in a local ChromaDB database. When you use the search command, your query is converted to a vector and the most semantically similar past messages are retrieved and sent to the model as context.
 
 Project Structure
+```
 memory-chatbot/
 ├── chatbot.py       # main chatbot logic and conversation loop
 ├── rag.py           # ChromaDB and sentence-transformers integration
 ├── history/         # saved conversation JSON files
 └── README.md
+```

@@ -2,6 +2,7 @@ import ollama
 import json
 from datetime import datetime
 import os
+from rag import store_message, search_messages
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HISTORY_DIR = os.path.join(BASE_DIR, "history")
@@ -87,9 +88,17 @@ def is_valid_date(date_string):
         return True
     except ValueError:
         return False
+    
+
 
 def chat(user_input):
     state["history"].append({"role": "user", "content": user_input})
+    store_message(
+        message_id=f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_user",
+        text=user_input,
+        role="user",
+        date=datetime.now().strftime("%Y-%m-%d")
+    )
     
     trim_history()
     
@@ -100,8 +109,14 @@ def chat(user_input):
     
     assistant_message = response["message"]["content"]
     state["history"].append({"role": "assistant", "content": assistant_message})
+    store_message(
+        message_id=f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_assistant",
+        text=assistant_message,
+        role="assistant",
+        date=datetime.now().strftime("%Y-%m-%d")
+    )
     
-    save_conversation()  # save after every message
+    save_conversation()
     
     return assistant_message
 
@@ -118,5 +133,20 @@ if __name__ == "__main__":
         if user_input.lower().startswith("recall "):
             date_string = user_input[7:]
             print(f"Bot: {search_history(date_string)}")
+            continue
+        if user_input.lower().startswith("search "):
+            query = user_input[7:]
+            documents, metadatas = search_messages(query)
+            
+            response = ollama.chat(
+                model="llama3:latest",
+                messages=state["history"] + [
+                    {
+                        "role": "user",
+                        "content": f"Based on these relevant past messages: {documents}\n\nAnswer this question: {query}"
+                    }
+                ]
+            )
+            print(f"Bot: {response['message']['content']}")
             continue
         print(f"Bot: {chat(user_input)}")

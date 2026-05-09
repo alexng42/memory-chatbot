@@ -1,4 +1,4 @@
-Memory Chatbot
+# Memory Chatbot
 
 A locally-run AI chatbot built with Python and Ollama that maintains conversation memory across sessions.
 Features
@@ -13,13 +13,13 @@ Conversation recall — load and reference conversations from a specific date
 
 User summarization — ask the bot to summarize everything it knows about you
 
-Requirements
+# Requirements
 
 Python 3.9+
 
 Ollama with llama3 pulled locally
 
-Installation
+# Installation
 
 Clone the repository:
 
@@ -37,7 +37,7 @@ Run the chatbot:
 
 bashpython chatbot.py
 
-Commands
+# Commands
 
 summary: get a summary of what the bot knows about you
 
@@ -49,7 +49,7 @@ search <query>: Search across all past conversations semantically
 
 quit: Exit the chatbot
 
-How It Works
+# How It Works
 
 Memory — the full conversation history is sent to the model with every message, giving it context of the current session. History is trimmed to the last 20 messages to stay within the model's context window.
 
@@ -57,7 +57,7 @@ Persistent storage — conversations are saved to JSON files in a history/ folde
 
 RAG (Retrieval Augmented Generation) — each message is converted to a vector embedding using all-MiniLM-L6-v2 and stored in a local ChromaDB database. When you use the search command, your query is converted to a vector and the most semantically similar past messages are retrieved and sent to the model as context.
 
-Project Structure
+# Project Structure
 ```
 memory-chatbot/
 ├── chatbot.py       # main chatbot logic and conversation loop
